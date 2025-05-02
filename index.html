@@ -1031,40 +1031,35 @@
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
         
-// 2. Función para guardar rutinas
-document.getElementById('saveRoutineBtn').addEventListener('click', async () => {
-    const saturdayRoutine = document.getElementById('saturdayRoutine').value;
-    const clientId = "ID_DEL_CLIENTE"; // Reemplazar con el ID real
-    
-    if(!saturdayRoutine) {
-        showMessage("Por favor escribe una rutina", 'error');
+ // 2. Validación básica
+    if (!routineData.saturday) {
+        showMessage('Por favor ingresa al menos la rutina del sábado', 'error');
         return;
     }
-
-    try {
-        // Guardar en Firebase
-        await database.ref(`gymData/clients/${clientId}/routine/saturday`).set({
-            exercises: saturdayRoutine,
-            lastUpdated: firebase.database.ServerValue.TIMESTAMP
+    
+    // 3. Mostrar carga
+    showMessage('Guardando...', 'loading');
+    
+    // 4. Guardar en Firebase
+    database.ref(`gymData/clients/${clientId}/routine`).update(routineData)
+        .then(() => {
+            showMessage('¡Rutina guardada con éxito!', 'success');
+        })
+        .catch((error) => {
+            console.error("Error al guardar:", error);
+            showMessage('Error al guardar: ' + error.message, 'error');
         });
-        
-        showMessage("¡Rutina guardada con éxito!", 'success');
-    } catch (error) {
-        console.error("Error al guardar:", error);
-        showMessage("Error al guardar la rutina", 'error');
-    }
 });
 
-// 3. Función para mostrar mensajes
-function showMessage(message, type) {
-    const messageDiv = document.getElementById('routineSuccessMessage');
-    messageDiv.textContent = message;
+// Función para mostrar mensajes
+function showMessage(text, type) {
+    const messageDiv = document.getElementById('messageContainer');
+    messageDiv.textContent = text;
     messageDiv.className = `message ${type}`;
     
-    setTimeout(() => {
-        messageDiv.textContent = '';
-        messageDiv.className = 'message';
-    }, 3000);
+    if (type !== 'loading') {
+        setTimeout(() => messageDiv.textContent = '', 3000);
+    }
 }
 
 // 4. Cargar rutina existente (si aplica)
