@@ -1030,7 +1030,55 @@
         // Inicializar Firebase
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
+        
+// 2. Función para guardar rutinas
+document.getElementById('saveRoutineBtn').addEventListener('click', async () => {
+    const saturdayRoutine = document.getElementById('saturdayRoutine').value;
+    const clientId = "ID_DEL_CLIENTE"; // Reemplazar con el ID real
+    
+    if(!saturdayRoutine) {
+        showMessage("Por favor escribe una rutina", 'error');
+        return;
+    }
 
+    try {
+        // Guardar en Firebase
+        await database.ref(`gymData/clients/${clientId}/routine/saturday`).set({
+            exercises: saturdayRoutine,
+            lastUpdated: firebase.database.ServerValue.TIMESTAMP
+        });
+        
+        showMessage("¡Rutina guardada con éxito!", 'success');
+    } catch (error) {
+        console.error("Error al guardar:", error);
+        showMessage("Error al guardar la rutina", 'error');
+    }
+});
+
+// 3. Función para mostrar mensajes
+function showMessage(message, type) {
+    const messageDiv = document.getElementById('routineSuccessMessage');
+    messageDiv.textContent = message;
+    messageDiv.className = `message ${type}`;
+    
+    setTimeout(() => {
+        messageDiv.textContent = '';
+        messageDiv.className = 'message';
+    }, 3000);
+}
+
+// 4. Cargar rutina existente (si aplica)
+function loadExistingRoutine(clientId) {
+    database.ref(`gymData/clients/${clientId}/routine/saturday`).once('value')
+        .then((snapshot) => {
+            if(snapshot.exists()) {
+                document.getElementById('saturdayRoutine').value = snapshot.val().exercises;
+            }
+        });
+}
+
+// Llamar al cargar la página (opcional)
+// loadExistingRoutine("ID_DEL_CLIENTE");
         // Referencias a la base de datos
         const gymDataRef = database.ref('gymData');
         const clientsRef = database.ref('clients');
