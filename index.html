@@ -830,15 +830,15 @@
                 <div class="tab-content" id="pricingTab">
                     <h3>Gestión de Precios</h3>
                     <div class="form-group">
-                        <label for="editMonthlyPrice">Precio Mensual (S/):</label>
+                        <label for="editMonthlyPrice">Precio Mensual ($/):</label>
                         <input type="number" step="0.01" id="editMonthlyPrice">
                     </div>
                     <div class="form-group">
-                        <label for="editBiweeklyPrice">Precio Quincenal (S/):</label>
+                        <label for="editBiweeklyPrice">Precio Quincenal ($/):</label>
                         <input type="number" step="0.01" id="editBiweeklyPrice">
                     </div>
                     <div class="form-group">
-                        <label for="editDailyPrice">Precio Diario (S/):</label>
+                        <label for="editDailyPrice">Precio Diario ($/):</label>
                         <input type="number" step="0.01" id="editDailyPrice">
                     </div>
                     <button class="btn" id="savePricesBtn">Guardar Precios</button>
@@ -1177,6 +1177,32 @@
         }
 
         // Cargar clientes en la tabla de administración
+        function guardarCliente(dni, nombre, apellido, vencimiento) {
+  // Crear objeto con los datos del cliente
+const clientData = {
+  ESTUDIOS: "SUBARAU",
+  expiry: "vencimiento",
+  routine: {
+    nonday: [],
+    tuesday: [],
+    wednesday: [],
+    thursday: [],
+    friday: [],  // Corregido a minúscula para consistencia
+    saturday: []
+  }
+};
+
+// Guardar en Firebase con sintaxis correcta
+database.ref('gymData/clients/' + dni).set(clientData)
+  .then(() => {
+    console.log('Cliente guardado exitosamente');
+    showSuccess('Cliente guardado correctamente');
+  })
+  .catch((error) => {
+    console.error('Error al guardar:', error);
+    showError('Error al guardar el cliente');
+  });
+}
         function loadClientsTable(filter = '') {
             const tableBody = document.getElementById('clientsTableBody');
             tableBody.innerHTML = '';
