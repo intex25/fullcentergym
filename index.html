@@ -1819,5 +1819,42 @@
             });
         });
     </script>
+
+<!-- Firebase SDKs -->
+<script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-auth-compat.js"></script>
+
+<!-- Tu código Firebase -->
+<script>
+  // Configuración de Firebase (usa tus datos reales)
+  const firebaseConfig = {
+    apiKey: "AIzaSyCQgASFpOUtCRn-_8q6Ls3IRJnA0C4caJU",
+    authDomain: "fullcenter-gym.firebaseapp.com",
+    databaseURL: "https://fullcenter-gym-default-rtdb.firebaseio.com",
+    projectId: "fullcenter-gym",
+    storageBucket: "fullcenter-gym.appspot.com",
+    messagingSenderId: "646602855916",
+    appId: "1:646602855916:web:aef76233311f255f281cc9"
+  };
+
+  // Inicializa Firebase
+  firebase.initializeApp(firebaseConfig);
+
+  // Autenticación y carga de datos
+  firebase.auth().signInAnonymously()
+    .then(() => {
+      console.log("Autenticación exitosa");
+      firebase.database().ref('gymData/clients').once('value')
+        .then(snapshot => {
+          const clients = snapshot.val();
+          console.log("Datos cargados:", clients);
+        });
+    })
+    .catch(error => {
+      console.error("Error:", error);
+    });
+</script>
+
 </body>
 </html>
