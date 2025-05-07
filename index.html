@@ -515,6 +515,51 @@
             margin: 0.5rem 0;
         }
         
+        /* Estilos para la sección de comentarios */
+        .comments-section {
+            background-color: var(--secondary);
+            padding: 2rem;
+            border-radius: 8px;
+            margin-top: 2rem;
+        }
+        
+        .comments-section h2 {
+            color: var(--primary);
+            margin-bottom: 1rem;
+        }
+        
+        .comment-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .comment-form textarea {
+            width: 100%;
+            padding: 0.75rem;
+            background-color: #333;
+            color: var(--light);
+            border: 1px solid #444;
+            border-radius: 4px;
+            min-height: 100px;
+        }
+        
+        .comments-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+        
+        .comments-table th, .comments-table td {
+            padding: 0.75rem;
+            border: 1px solid #444;
+        }
+        
+        .comments-table th {
+            background-color: var(--primary);
+            color: var(--dark);
+        }
+        
         /* Responsive Design */
         @media (max-width: 768px) {
             .info-cards {
@@ -550,6 +595,11 @@
             
             .pricing-card {
                 grid-template-columns: 1fr;
+            }
+            
+            .comments-table {
+                display: block;
+                overflow-x: auto;
             }
         }
         
@@ -659,6 +709,29 @@
                 </div>
             </section>
             
+            <!-- Comments Section -->
+            <section class="comments-section">
+                <h2>Comentarios sobre el gimnasio</h2>
+                <form id="comentarioForm" class="comment-form">
+                    <div class="form-group">
+                        <label for="sugerencias">Sugerencias o mejoras:</label>
+                        <textarea id="sugerencias" placeholder="¿Qué podemos mejorar?"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="musica">Música que te gustaría escuchar:</label>
+                        <textarea id="musica" placeholder="¿Qué género musical prefieres?"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="quejas">Quejas o reclamos:</label>
+                        <textarea id="quejas" placeholder="¿Algún problema que debamos saber?"></textarea>
+                    </div>
+                    
+                    <button type="submit" class="btn">Enviar comentario</button>
+                </form>
+            </section>
+            
             <!-- Info Section -->
             <section class="info-section">
                 <h2>Sobre nuestro gimnasio</h2>
@@ -759,6 +832,7 @@
                     <button class="tab-btn" data-tab="expiringTab">Membresías por vencer</button>
                     <button class="tab-btn" data-tab="addClientTab">Agregar cliente</button>
                     <button class="tab-btn" data-tab="pricingTab">Precios</button>
+                    <button class="tab-btn" data-tab="commentsTab">Comentarios</button>
                 </div>
                 
                 <div class="tab-content active" id="clientsTab">
@@ -843,6 +917,25 @@
                     </div>
                     <button class="btn" id="savePricesBtn">Guardar Precios</button>
                     <div class="success-message" id="pricingSuccessMessage"></div>
+                </div>
+                
+                <div class="tab-content" id="commentsTab">
+                    <h3>Comentarios de Clientes</h3>
+                    <table class="comments-table">
+                        <thead>
+                            <tr>
+                                <th>Cliente</th>
+                                <th>Fecha</th>
+                                <th>Sugerencias</th>
+                                <th>Música</th>
+                                <th>Quejas</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="commentsTableBody">
+                            <!-- Datos se cargarán dinámicamente -->
+                        </tbody>
+                    </table>
                 </div>
             </section>
         </div>
@@ -1033,6 +1126,7 @@
         const gymDataRef = database.ref('gymData');
         const clientsRef = database.ref('clients');
         const adminRef = database.ref('admin');
+        const commentsRef = database.ref('comentarios');
 
         // Variables globales
         let gymData = {
@@ -1274,6 +1368,40 @@
             });
         }
 
+        // Cargar comentarios para el panel de administración
+        function loadComments() {
+            const tbody = document.getElementById('commentsTableBody');
+            tbody.innerHTML = '';
+            
+            commentsRef.on('value', snapshot => {
+                const comentarios = snapshot.val();
+                if (!comentarios) return;
+                
+                for (let clienteId in comentarios) {
+                    for (let comentarioId in comentarios[clienteId]) {
+                        const c = comentarios[clienteId][comentarioId];
+                        const fila = document.createElement('tr');
+                        fila.innerHTML = `
+                            <td>${clienteId}</td>
+                            <td>${new Date(c.fecha).toLocaleString()}</td>
+                            <td>${c.sugerencias || "-"}</td>
+                            <td>${c.musica || "-"}</td>
+                            <td>${c.quejas || "-"}</td>
+                            <td><button class="action-btn delete" onclick="borrarComentario('${clienteId}', '${comentarioId}')">Borrar</button></td>
+                        `;
+                        tbody.appendChild(fila);
+                    }
+                }
+            });
+        }
+
+        // Borrar un comentario
+        function borrarComentario(clienteId, comentarioId) {
+            if (confirm("¿Estás seguro de que querés borrar este comentario?")) {
+                database.ref(`comentarios/${clienteId}/${comentarioId}`).remove();
+            }
+        }
+
         // Abrir modal para editar cliente
         function openEditClientModal(dni, focusOnExpiry = false) {
             const client = findClientByDni(dni);
@@ -1434,6 +1562,7 @@
             if (viewId === 'adminPanel') {
                 loadClientsTable();
                 loadExpiringMemberships();
+                loadComments();
                 pricingSystem.init();
             }
         }
@@ -1795,6 +1924,33 @@
             // Botón para abrir dirección en Google Maps
             document.getElementById('openDirections').addEventListener('click', function() {
                window.open('https://www.google.com/maps/dir/?api=1&destination=Reconquista+1200,T4000+Yerba+Buena,Tucumán');
+            });
+            
+            // Enviar comentario
+            document.getElementById('comentarioForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const sugerencias = document.getElementById('sugerencias').value;
+                const musica = document.getElementById('musica').value;
+                const quejas = document.getElementById('quejas').value;
+                const dni = document.getElementById('clientDni').value || 'anonimo';
+                
+                if (!sugerencias && !musica && !quejas) {
+                    alert('Por favor, ingresa al menos un comentario');
+                    return;
+                }
+                
+                commentsRef.child(dni).push({
+                    sugerencias,
+                    musica,
+                    quejas,
+                    fecha: new Date().toISOString()
+                }).then(() => {
+                    alert('¡Gracias por tus comentarios!');
+                    document.getElementById('comentarioForm').reset();
+                }).catch(error => {
+                    console.error('Error al guardar comentario:', error);
+                    alert('Ocurrió un error al enviar tu comentario');
+                });
             });
         });
     </script>
