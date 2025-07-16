@@ -738,6 +738,13 @@
         .view.active {
             display: block;
         }
+        
+        .routine-table select.exercise-rir {
+            font-size: 1rem;   /* Más chico */
+            width: 60px;       /* Más angosto */
+            min-width: 60px;
+            text-align: center;
+        }
     </style>
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
@@ -1145,7 +1152,6 @@
                 <button class="tab-btn" data-tab="routineDay5">Día 5</button>
                 <button class="tab-btn" data-tab="routineDay6">Día 6</button>
             </div>
-            
             <div class="routine-tools">
                 <button class="btn" id="addExerciseBtn"><i class="fas fa-plus"></i> Agregar Ejercicio</button>
                 <button class="btn" id="copyRoutineBtn"><i class="fas fa-copy"></i> Copiar Día</button>
@@ -1177,6 +1183,7 @@
                                 <th>Peso</th>
                                 <th>RIR</th>
                                 <th>Observaciones</th>
+                                <th>Video</th> <!-- CAMBIO -->
                                 <th>Acciones</th>
                             </tr>
                         </thead>
@@ -1201,6 +1208,7 @@
                                 <th>Peso</th>
                                 <th>RIR</th>
                                 <th>Observaciones</th>
+                                <th>Video</th> <!-- CAMBIO -->
                                 <th>Acciones</th>
                             </tr>
                         </thead>
@@ -1225,6 +1233,7 @@
                                 <th>Peso</th>
                                 <th>RIR</th>
                                 <th>Observaciones</th>
+                                <th>Video</th> <!-- CAMBIO -->
                                 <th>Acciones</th>
                             </tr>
                         </thead>
@@ -1249,6 +1258,7 @@
                                 <th>Peso</th>
                                 <th>RIR</th>
                                 <th>Observaciones</th>
+                                <th>Video</th> <!-- CAMBIO -->
                                 <th>Acciones</th>
                             </tr>
                         </thead>
@@ -1273,6 +1283,7 @@
                                 <th>Peso</th>
                                 <th>RIR</th>
                                 <th>Observaciones</th>
+                                <th>Video</th> <!-- CAMBIO -->
                                 <th>Acciones</th>
                             </tr>
                         </thead>
@@ -1297,6 +1308,7 @@
                                 <th>Peso</th>
                                 <th>RIR</th>
                                 <th>Observaciones</th>
+                                <th>Video</th> <!-- CAMBIO -->
                                 <th>Acciones</th>
                             </tr>
                         </thead>
@@ -1531,6 +1543,7 @@
                     </select>
                 </td>
                 <td><input type="text" class="exercise-notes" placeholder="Observaciones"></td>
+                <td><input type="url" class="exercise-video" placeholder="Pega aquí el enlace de YouTube"></td>
                 <td class="exercise-actions">
                     <button class="move-up" title="Mover arriba"><i class="fas fa-arrow-up"></i></button>
                     <button class="move-down" title="Mover abajo"><i class="fas fa-arrow-down"></i></button>
@@ -1610,6 +1623,7 @@
                                 <th>Peso</th>
                                 <th>RIR</th>
                                 <th>Notas</th>
+                                <th>Video</th> <!-- CAMBIO -->
                             </tr>
                         </thead>
                         <tbody id="${day}ExercisesBody"></tbody>
@@ -1627,6 +1641,9 @@
                             <td>${exercise.weight}</td>
                             <td>${exercise.rir}</td>
                             <td>${exercise.notes}</td>
+                            <td>
+                                ${exercise.video ? `<a href="${exercise.video}" target="_blank">Ver video</a>` : ''}
+                            </td>
                         `;
                         tbody.appendChild(row);
                     });
@@ -1653,6 +1670,23 @@
                        client.name.toLowerCase().includes(searchText) || 
                        client.lastName.toLowerCase().includes(searchText);
             });
+            
+            // Ordenar alfabéticamente por nombre y apellido
+            filteredClients.sort((a, b) => {
+                const nameA = (a.name + ' ' + a.lastName).toLowerCase();
+                const nameB = (b.name + ' ' + b.lastName).toLowerCase();
+                return nameA.localeCompare(nameB);
+            });
+            
+            // Mostrar total de clientes
+            let totalDiv = document.getElementById('totalClientsDiv');
+            if (!totalDiv) {
+                totalDiv = document.createElement('div');
+                totalDiv.id = 'totalClientsDiv';
+                totalDiv.style = 'margin-bottom: 10px; font-weight: bold;';
+                tableBody.parentElement.parentElement.insertBefore(totalDiv, tableBody.parentElement);
+            }
+            totalDiv.textContent = `Total de clientes: ${filteredClients.length}`;
             
             filteredClients.forEach(client => {
                 const row = document.createElement('tr');
@@ -1842,6 +1876,7 @@
                             </select>
                         </td>
                         <td><input type="text" class="exercise-notes" value="${exercise.notes || ''}"></td>
+                        <td><input type="url" class="exercise-video" value="${exercise.video || ''}" placeholder="Pega aquí el enlace de YouTube"></td>
                         <td class="exercise-actions">
                             <button class="move-up" title="Mover arriba"><i class="fas fa-arrow-up"></i></button>
                             <button class="move-down" title="Mover abajo"><i class="fas fa-arrow-down"></i></button>
@@ -1918,7 +1953,6 @@
                     <td><input type="text" class="exercise-duration" value="${exercise.duration || ''}"></td>
                     <td><input type="text" class="exercise-rest" value="${exercise.rest || '60seg'}"></td>
                     <td><input type="text" class="exercise-weight" value="${exercise.weight || ''}"></td>
-                    <td>
                         <select class="exercise-rir">
                             <option value="0" ${exercise.rir === 0 ? 'selected' : ''}>0</option>
                             <option value="1" ${exercise.rir === 1 ? 'selected' : ''}>1</option>
@@ -1928,11 +1962,7 @@
                         </select>
                     </td>
                     <td><input type="text" class="exercise-notes" value="${exercise.notes || ''}"></td>
-                    <td class="exercise-actions">
-                        <button class="move-up" title="Mover arriba"><i class="fas fa-arrow-up"></i></button>
-                        <button class="move-down" title="Mover abajo"><i class="fas fa-arrow-down"></i></button>
-                        <button class="delete-exercise" title="Eliminar"><i class="fas fa-trash"></i></button>
-                    </td>
+                    <td><input type="url" class="exercise-video" value="${exercise.video || ''}" placeholder="Pega aquí el enlace de YouTube"></td>
                 `;
                 
                 tbody.appendChild(row);
@@ -2001,6 +2031,7 @@
                             </select>
                         </td>
                         <td><input type="text" class="exercise-notes" value="${exercise.notes || ''}"></td>
+                        <td><input type="url" class="exercise-video" value="${exercise.video || ''}" placeholder="Pega aquí el enlace de YouTube"></td> <!-- CAMBIO -->
                         <td class="exercise-actions">
                             <button class="move-up" title="Mover arriba"><i class="fas fa-arrow-up"></i></button>
                             <button class="move-down" title="Mover abajo"><i class="fas fa-arrow-down"></i></button>
@@ -2042,7 +2073,7 @@
                 
                 rows.forEach(row => {
                     const name = row.querySelector('.exercise-name').value.trim();
-                    if (name) { // Solo agregar ejercicios con nombre
+                    if (name) {
                         exercises.push({
                             name: name,
                             sets: parseInt(row.querySelector('.exercise-sets').value) || 0,
@@ -2051,7 +2082,8 @@
                             rest: row.querySelector('.exercise-rest').value,
                             weight: row.querySelector('.exercise-weight').value,
                             rir: parseInt(row.querySelector('.exercise-rir').value) || 2,
-                            notes: row.querySelector('.exercise-notes').value
+                            notes: row.querySelector('.exercise-notes').value,
+                            video: row.querySelector('.exercise-video') ? row.querySelector('.exercise-video').value : "" // CAMBIO
                         });
                     }
                 });
@@ -2063,9 +2095,7 @@
             saveData();
             
             showSuccess('routineSuccessMessage', 'Rutina actualizada correctamente');
-            setTimeout(() => {
-                document.getElementById('editRoutineModal').style.display = 'none';
-            }, 2000);
+            // CAMBIO: Ya NO se cierra el modal aquí
         }
 
         // Eliminar cliente
@@ -2524,6 +2554,7 @@
                 if (document.getElementById('editRoutineModal').style.display === 'block' &&
                     document.activeElement.tagName === 'INPUT') {
                     document.getElementById('saveRoutineBtn').click();
+                    // CAMBIO: No cerrar el modal aquí
                 }
                 // Buscar rutina cliente
                 if (document.activeElement === document.getElementById('clientDni')) {
