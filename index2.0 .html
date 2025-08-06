@@ -1466,8 +1466,11 @@
 
         // Formatear fecha para mostrar
         function formatDate(dateString) {
+            // Sumar un día para corregir el desfase de zona horaria
+            const date = new Date(dateString);
+            date.setDate(date.getDate() + 1);
             const options = { day: '2-digit', month: '2-digit', year: 'numeric' };
-            return new Date(dateString).toLocaleDateString('es-ES', options);
+            return date.toLocaleDateString('es-ES', options);
         }
 
         // Verificar si una membresía está vencida
